@@ -210,7 +210,7 @@ def test_failure_on_later_page_retains_cache_and_recovers():
         calls += 1
         if phase == "failed" and request.query.get("cursor"):
             return web.Response(status=500, text="TEST_SECRET")
-        return web.json_response({"data": [play(id=str(calls), started_at=datetime.now(timezone.utc).isoformat())],
+        return web.json_response({"data": [play(id=str(calls), started_at=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat())],
                                   "meta": {"nextCursor": "second" if phase == "failed" else None}})
     async def check(client):
         nonlocal phase
@@ -242,7 +242,7 @@ def test_coordinator_auth_error_is_sanitized():
 
 def test_coordinator_proxies_artwork_without_exposing_tracearr_credentials():
     async def rows(*args):
-        return [play(started_at=datetime.now(timezone.utc).isoformat(),
+        return [play(started_at=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(),
                      poster_url="/api/v1/images/proxy?server=reckplex&url=poster")]
     coordinator = history.TracearrHistoryCoordinator(None, SimpleNamespace(
         history=rows, base_url="https://tracearr.example"), "entry")
