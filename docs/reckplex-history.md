@@ -3,7 +3,7 @@
 This package extends Moosketair/home-assistant-tracearr v0.1.16, commit
 443ce3859d09b67ccfd589d326d032753dc11d64. It is a local enhancement, not an
 official upstream release. Existing configuration entries, live sensor unique
-IDs, stream polling, SSE and card JavaScript are retained. The manifest remains
+IDs, stream polling and SSE are retained. The manifest remains
 0.1.16 so this package does not claim an upstream version number.
 
 ## Install over your existing v0.1.16
@@ -99,12 +99,19 @@ proxy; missing/broken artwork does not invalidate the ranking.
 
 ## English UI
 
-Select English in your Home Assistant user profile for the existing English
-configuration/options screens and the new English sensor names. French sensor
-translations are included too. The bundled Lovelace cards contain hard-coded
-French text in upstream v0.1.16; this enhancement preserves their JavaScript and
-does **not** provide a complete English card/editor translation. Standard Home
-Assistant cards can display the new sensors in English immediately.
+Both dashboard cards and their visual editors now support English and French.
+Language defaults to Automatic: Home Assistant's profile language, then the
+browser language before HA is available. Unsupported languages fall back to
+English. Set Language > English in General display to override it for one card,
+or add `language: en` to that card's YAML. Use `language: fr` to force French.
+The integration's configuration/options screens and history sensor names also
+include English/French translations.
+
+Custom titles, messages, media names, user names and badge labels are preserved.
+If a previously saved card has the old French default stored explicitly as
+`empty_message: Aucune lecture en cours`, remove that setting (or set it to null)
+to use the automatic translation, or replace it with your preferred message.
+See [dashboard language instructions](dashboard-language.md) for installation.
 
 ## Validation and limits
 
@@ -129,7 +136,7 @@ python -m pip install pytest aiohttp
 python -m pytest -q tests
 python -m compileall -q custom_components tests
 node --check custom_components/tracearr_ha/frontend/tracearr-card.js
-node --test tests/test_carousel.cjs
+node --test tests/test_carousel.cjs tests/test_card_i18n.cjs
 ```
 
 The accompanying patch applies to clean upstream v0.1.16 with `git apply`.
