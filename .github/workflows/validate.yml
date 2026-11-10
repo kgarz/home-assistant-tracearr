@@ -25,7 +25,7 @@ jobs:
       - name: Check frontend JS
         run: |
           node --check custom_components/tracearr_ha/frontend/tracearr-card.js
-          node --test tests/test_carousel.cjs
+          node --test tests/test_carousel.cjs tests/test_card_i18n.cjs
 
   validate-hacs:
     runs-on: ubuntu-latest

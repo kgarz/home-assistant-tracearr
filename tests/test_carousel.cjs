@@ -25,7 +25,9 @@ class MockHTMLElement {
   }
   matches() { return false; }
 }
+// Keep the existing French regressions; English and auto detection have dedicated tests.
 const env = {
+  navigator: {language: "fr-FR"},
   HTMLElement: MockHTMLElement,
   customElements: {define(name, cls) { classes.set(name, cls); }, get(name) { return classes.get(name); }},
   window: {customCards: [], matchMedia() { return {matches: false}; }},

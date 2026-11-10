@@ -1,5 +1,7 @@
 # Tracearr HA
 
+English/French dashboard cards: [Language settings and installation](docs/dashboard-language.md).
+
 Local enhancement: [Reckplex rolling 30-day movie/TV sensors — installation and English notes](docs/reckplex-history.md).
 
 [![Validation GitHub Actions](https://github.com/Moosketair/home-assistant-tracearr/actions/workflows/validate.yml/badge.svg)](https://github.com/Moosketair/home-assistant-tracearr/actions/workflows/validate.yml)
