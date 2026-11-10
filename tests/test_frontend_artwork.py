@@ -61,10 +61,15 @@ def test_artwork_proxy_uses_image_accept_and_accepts_octet_stream():
                 assert response.content_type == "image/png"
                 assert response.body == png
                 assert seen == [("image/avif,image/webp,image/*,*/*;q=0.8", "Bearer test")]
+                # Historical posters use the same restricted, authenticated proxy.
+                coord.history = SimpleNamespace(artwork_sources={"history-movie-0": {
+                    "poster_url": f"{base}/api/v1/images/proxy?key=abc"}})
+                assert (await view.get(req, "e", "history-movie-0", "poster")).status == 200
+                assert (await view.get(req, "e", "history-movie-9", "poster")).status == 404
                 # Reject an arbitrary external URL even if the stream references it.
                 coord.streams["s"]["poster_url"] = "https://example.org/api/v1/images/proxy"
                 assert (await view.get(req, "e", "s", "poster")).status == 404
-                assert len(seen) == 1
+                assert len(seen) == 2
         finally:
             await runner.cleanup()
 

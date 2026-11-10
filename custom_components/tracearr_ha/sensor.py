@@ -6,6 +6,7 @@ from homeassistant.const import UnitOfDataRate
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
+from .history import RECKPLEX_SERVER_ID, TracearrHistoryCoordinator
 
 STAT_TYPES = {
     "total": ("Active streams", "mdi:play-network", None),
@@ -37,6 +38,51 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     add_servers()
     entry.async_on_unload(coordinator.async_add_listener(add_servers))
+    history = TracearrHistoryCoordinator(hass, coordinator.client, entry.entry_id)
+    coordinator.history = history
+    # A history outage must not prevent the existing live sensors from loading.
+    async_add_entities([TracearrTopMediaSensor(history, entry, kind) for kind in ("movie", "episode")])
+    task = hass.async_create_background_task(history.async_refresh(), "Tracearr history first refresh", eager_start=False)
+    entry.async_on_unload(task.cancel)
+
+
+class TracearrTopMediaSensor(CoordinatorEntity, SensorEntity):
+    """Title of the most watched movie/show, with the top five as attributes."""
+
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator, entry, kind):
+        super().__init__(coordinator)
+        self.kind = kind
+        self._attr_translation_key = "top_movie_30_days" if kind == "movie" else "top_show_30_days"
+        self._attr_icon = "mdi:movie" if kind == "movie" else "mdi:television"
+        self._attr_unique_id = f"{entry.entry_id}_{RECKPLEX_SERVER_ID}_top_{kind}_30_days"
+        self._attr_device_info = {"identifiers": {(DOMAIN, RECKPLEX_SERVER_ID)}, "name": "Reckplex", "manufacturer": "Tracearr", "model": "plex"}
+
+    @property
+    def ranking(self):
+        return (self.coordinator.data or {}).get(self.kind, [])
+
+    @property
+    def available(self):
+        return self.coordinator.data is not None and self.coordinator.last_update_success
+
+    @property
+    def native_value(self):
+        return self.ranking[0]["title"][:255] if self.ranking else None
+
+    @property
+    def entity_picture(self):
+        return self.ranking[0]["artwork"] if self.ranking else None
+
+    @property
+    def extra_state_attributes(self):
+        data = self.coordinator.data or {}
+        top = self.ranking[0] if self.ranking else {}
+        return {"count": top.get("count", 0), "year": top.get("year"),
+                "artwork": top.get("artwork"), "top_five": self.ranking,
+                "server_id": RECKPLEX_SERVER_ID, "window_days": 30,
+                "since": data.get("since"), "last_updated": data.get("until")}
 
 
 class TracearrStatsSensor(CoordinatorEntity, SensorEntity):

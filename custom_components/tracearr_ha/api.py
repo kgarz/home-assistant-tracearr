@@ -12,6 +12,7 @@ from typing import Any
 from aiohttp import ClientError, ClientResponse, ClientSession, ClientTimeout
 
 API_PREFIX = "/api/v2/public"
+HISTORY_MAX_PAGES = 1000
 
 
 class TracearrError(Exception):
@@ -74,6 +75,30 @@ class TracearrClient:
 
     async def streams(self) -> dict:
         return await self.get("streams")
+
+    async def history(self, server_id: str, since: str) -> list[dict]:
+        """Read every cursor page or fail; never publish a partial ranking."""
+        results: list[dict] = []
+        cursor = None
+        seen: set[str] = set()
+        for _ in range(HISTORY_MAX_PAGES):
+            params = {"server_id": server_id, "since": since,
+                      "watched": "true", "page_size": 100}
+            if cursor is not None:
+                params["cursor"] = cursor
+            page = await self.get("history", params)
+            rows, meta = page.get("data"), page.get("meta")
+            if (not isinstance(rows, list) or not all(isinstance(r, dict) for r in rows)
+                    or not isinstance(meta, dict) or "nextCursor" not in meta):
+                raise TracearrUnavailable("Invalid Tracearr history response")
+            results.extend(rows)
+            cursor = meta["nextCursor"]
+            if cursor is None or cursor == "":
+                return results
+            if not isinstance(cursor, str) or cursor in seen:
+                raise TracearrUnavailable("Invalid or repeated Tracearr history cursor")
+            seen.add(cursor)
+        raise TracearrUnavailable("Tracearr history page limit exceeded")
 
     async def servers(self) -> dict:
         return await self.get("servers")

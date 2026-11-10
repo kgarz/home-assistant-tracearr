@@ -128,5 +128,15 @@
     "abort": {
       "no_users": "Aucun utilisateur trouvé. Utilisez l'éditeur JSON avancé."
     }
+  },
+  "entity": {
+    "sensor": {
+      "top_movie_30_days": {
+        "name": "Film le plus regardé (30 jours)"
+      },
+      "top_show_30_days": {
+        "name": "Série la plus regardée (30 jours)"
+      }
+    }
   }
 }
