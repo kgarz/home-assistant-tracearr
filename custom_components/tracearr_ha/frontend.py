@@ -85,9 +85,13 @@ class TracearrArtworkView(HomeAssistantView):
                     return web.Response(status=502 if response.status >= 500 else 404)
                 if response.content_length and response.content_length > MAX_ARTWORK_BYTES:
                     return web.Response(status=413)
-                data = await response.content.read(MAX_ARTWORK_BYTES + 1)
-                if len(data) > MAX_ARTWORK_BYTES:
-                    return web.Response(status=413)
+                # read(n) may return only the first available network chunk.
+                # Consume through EOF without ever buffering an unbounded image.
+                data = bytearray()
+                async for chunk in response.content.iter_chunked(64 * 1024):
+                    if len(data) + len(chunk) > MAX_ARTWORK_BYTES:
+                        return web.Response(status=413)
+                    data.extend(chunk)
                 content_type = response.headers.get("Content-Type", "")
                 safe_type = content_type.split(";", 1)[0].strip().lower()
                 if safe_type in ("image/jpg", "image/pjpeg"):
@@ -107,7 +111,7 @@ class TracearrArtworkView(HomeAssistantView):
                         safe_type = "image/avif"
                 if safe_type not in ("image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"):
                     return web.Response(status=415)
-                return web.Response(body=data, content_type=safe_type,
+                return web.Response(body=bytes(data), content_type=safe_type,
                                     headers={"Cache-Control": "private, max-age=60", "X-Content-Type-Options": "nosniff"})
         except (ClientError, TimeoutError) as exc:
             _LOGGER.debug("Tracearr artwork request failed: %s", type(exc).__name__)
