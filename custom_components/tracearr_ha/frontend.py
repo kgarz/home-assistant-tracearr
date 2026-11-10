@@ -44,7 +44,7 @@ async def async_register_frontend(hass):
 
 
 class TracearrArtworkView(HomeAssistantView):
-    """Serve only images referenced by an active stream, never arbitrary URLs."""
+    """Serve only images referenced by active streams or cached history rankings."""
     url = "/api/tracearr_ha/image/{entry_id}/{session_id}/{kind}"
     name = "api:tracearr_ha:image"
     requires_auth = True
@@ -57,6 +57,10 @@ class TracearrArtworkView(HomeAssistantView):
         if not coord:
             return web.Response(status=404)
         item = coord.streams.get(session_id)
+        if not item and kind == "poster":
+            history = getattr(coord, "history", None)
+            if history:
+                item = history.artwork_sources.get(session_id)
         if not item:
             return web.Response(status=404)
         uri = item.get("poster_url" if kind == "poster" else "user_avatar_url")

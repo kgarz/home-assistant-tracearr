@@ -128,5 +128,15 @@
     "abort": {
       "no_users": "No user accounts were found. Use the advanced JSON editor."
     }
+  },
+  "entity": {
+    "sensor": {
+      "top_movie_30_days": {
+        "name": "Top movie (30 days)"
+      },
+      "top_show_30_days": {
+        "name": "Top TV show (30 days)"
+      }
+    }
   }
 }

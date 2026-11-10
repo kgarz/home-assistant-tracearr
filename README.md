@@ -1,5 +1,7 @@
 # Tracearr HA
 
+Local enhancement: [Reckplex rolling 30-day movie/TV sensors — installation and English notes](docs/reckplex-history.md).
+
 [![Validation GitHub Actions](https://github.com/Moosketair/home-assistant-tracearr/actions/workflows/validate.yml/badge.svg)](https://github.com/Moosketair/home-assistant-tracearr/actions/workflows/validate.yml)
 [![HACS](https://img.shields.io/badge/HACS-Catalogue%20officiel-41BDF5)](https://github.com/hacs/default/pull/13306)
 [![Licence MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
